@@ -1,0 +1,213 @@
+---
+title: "`r params$title`"
+author: "`r Sys.getenv('USER')`"
+affiliation: ""
+format: 
+  pdf:
+    template: template.tex
+    fig-pos: 'htbp'
+    fig-width: 6
+    fig-height: 4
+    keep-tex: true  # Helpful for debugging
+params:
+  file: "path/to/file"
+  title: "ELISA Report"
+  coat_protein: "coat"
+  coat_protein_conc: 1
+  plate: "corning"
+  blocking_buffer: "block"
+  detect_dil: "1:5000"
+  time: 6
+  method: "line"
+  errorbars: true
+  point_size: 3
+  linewidth: 1
+  errorbar_width: 0.2
+  results: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "htbp",
+  out.width = "100%",
+  fig.align = "center"
+)
+library(ggplot2)
+library(dplyr)
+library(tidyplate)
+library(ggtext)
+```
+
+## Protocol
+
+#### Coating
+
+1.  The `r params$coat_protein` was diluted in PBS to a final concentration of `r params$coat_protein_conc` µg/ml.
+2.  100 µL of the coat protein was added to each well of `r params$plate` .
+3.  The plate was incubated overnight at 4 °C.
+
+#### Blocking
+
+1.  The plate was washed three times with 300 µL PBS-T.
+2.  300 µL of `r params$blocking_buffer` was added to each well of the plate.
+3.  The plate was incubated for 1 hour at 37 °C.
+
+#### Primary antibody
+
+1.  Primary antibody was diluted in `r params$blocking_buffer` in a separate dilution plate.
+2.  100 µL of primary antibody was added to each well of the coating plate.
+3.  The plate was incubated for 1 hour at 37 °C.
+4.  The plate was washed three times with 300 µL PBS-T.
+
+#### Detection antibody
+
+1.  HRP conjugated detection antibody was diluted in `r params$blocking_buffer` to a final dilution of `r params$detect_dil`.
+2.  100 µL of detection antibody was added to each well of the coating plate.
+3.  The plate was incubated for 1 hour at 37 °C.
+4.  The plate was washed three times with 300 µL PBS-T.
+
+#### Develop plate
+
+1.  Any remaining liquid in the plate was throughly removed by vigorously shaking the plate.
+2.  100 µL of 1-Step™ TMB ELISA Substrate Solution (ThermoFisher, #34028) was added to each well of the plate.
+3.  The plate was incubated at room temperature for `r params$time` minutes.
+4.  100 µL of Stop solution was added to stop the reaction.
+5.  Absorbance was measured at 450 nm.
+
+## ELISA plot
+
+```{r}
+# Read the data with error handling
+tryCatch({
+  df <- tidyplate::tidy_plate(params$file, sheet = 1, well_id = "well")
+}, error = function(e) {
+  stop("Error reading data file: ", conditionMessage(e))
+})
+
+# Validate required columns
+required_cols <- c("primary_mab_name", "primary_mab_conc", "od450")
+missing_cols <- setdiff(required_cols, names(df))
+if (length(missing_cols) > 0) {
+  stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+}
+
+# Remove empty columns more efficiently
+df <- df[, colSums(!is.na(df)) > 0]
+
+# Calculate blank with error handling
+blank_data <- df |>
+  dplyr::filter(primary_mab_name == "blank")
+if (nrow(blank_data) == 0) {
+  stop("No blank samples found in the data")
+}
+mean_blank <- mean(blank_data$od450, na.rm = TRUE)
+if (is.na(mean_blank)) {
+  stop("Could not calculate mean blank value")
+}
+
+# Process data with improved error handling
+summary_data <- tryCatch({
+  df |>
+    dplyr::filter(primary_mab_name != "blank") |>
+    dplyr::mutate(
+      blanked_od = od450 - mean_blank,
+      primary_mab_conc = as.numeric(primary_mab_conc)
+    ) |>
+    dplyr::group_by(primary_mab_conc, primary_mab_name) |>
+    dplyr::summarise(
+      mean_od = mean(blanked_od, na.rm = TRUE),
+      mean_sd = sd(blanked_od, na.rm = TRUE),
+      n = n(),
+      .groups = 'drop'
+    )
+}, error = function(e) {
+  stop("Error processing data: ", conditionMessage(e))
+})
+
+# Validate processed data
+if (nrow(summary_data) == 0) {
+  stop("No valid data points after processing")
+}
+
+# Create plot with improved error handling
+plot_data <- function(data, params) {
+  p <- ggplot(data,
+              aes(x = primary_mab_conc,
+                  y = mean_od,
+                  group = primary_mab_name,
+                  color = primary_mab_name,
+                  shape = primary_mab_name)) +
+    geom_point(size = params$point_size) +
+    scale_x_log10(
+      labels = scales::label_number(accuracy = 0.01),
+      breaks = scales::breaks_log()
+    ) +
+    scale_shape_manual(values = c(0:2, 5:7, 10:14))
+  
+  # Add curves based on method
+  if (params$method == "line") {
+    p <- p + geom_line(linewidth = params$linewidth)
+  } else if (params$method == "L4") {
+    if (!requireNamespace("drc", quietly = TRUE)) {
+      warning("Package 'drc' is required for L4 fitting. Using line method instead.")
+      p <- p + geom_line(linewidth = params$linewidth)
+    } else {
+      p <- p + lapply(unique(data$primary_mab_name), function(group) {
+        group_data <- subset(data, primary_mab_name == group)
+        tryCatch({
+          model <- drc::drm(mean_od ~ primary_mab_conc, 
+                            data = group_data,
+                            fct = drc::L.4())
+          pred_data <- data.frame(
+            primary_mab_conc = exp(seq(log(min(group_data$primary_mab_conc)),
+                                       log(max(group_data$primary_mab_conc)),
+                                       length.out = 100))
+          )
+          pred_data$mean_od <- predict(model, newdata = pred_data)
+          geom_line(data = cbind(pred_data, primary_mab_name = group),
+                    linewidth = params$linewidth)
+        }, error = function(e) {
+          warning("L4 fitting failed for group ", group, ". Using line method.")
+          geom_line(data = group_data, linewidth = params$linewidth)
+        })
+      })
+    }
+  }
+  
+  # Add error bars if requested
+  if (params$errorbars) {
+    p <- p + geom_errorbar(
+      aes(ymin = mean_od - mean_sd,
+          ymax = mean_od + mean_sd),
+      width = params$errorbar_width
+    )
+  }
+  
+  # Improve plot styling
+  p + labs(x = "Antibody concentration (µg/ml)",
+           y = "OD~450~",
+           color = NULL,
+           shape = NULL) +
+    theme_bw() +
+    theme(
+      axis.title.y = ggtext::element_markdown(),
+      #legend.position = "top",
+      legend.box = "horizontal",
+      panel.grid.minor = element_blank()
+    )
+}
+
+# Generate plot with error handling
+tryCatch({
+  print(plot_data(summary_data, params))
+}, error = function(e) {
+  stop("Error creating plot: ", conditionMessage(e))
+})
+```
+
+## Results
+
+`r params$results`
