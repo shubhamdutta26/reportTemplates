@@ -18,7 +18,7 @@ generate_elisa_report(
   point_size = 3,
   linewidth = 1,
   errorbar_width = 0.2,
-  results,
+  results = "",
   output_file = "elisa_report.pdf"
 )
 }

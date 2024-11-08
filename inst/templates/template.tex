@@ -18,6 +18,29 @@
 \usepackage{caption}
 \usepackage{sectsty}
 
+% Font Configuration
+\defaultfontfeatures{Ligatures=TeX}  % Enable standard TeX ligatures
+
+% % Set up contemporary fonts
+\setmainfont{Merriweather}[
+    UprightFont = *-Regular,
+    BoldFont = *-Bold,
+    ItalicFont = *-Italic,
+    BoldItalicFont = *-BoldItalic
+]
+
+\setsansfont{Montserrat}[
+    UprightFont = *-Regular,
+    BoldFont = *-Bold,
+    ItalicFont = *-Italic,
+    BoldItalicFont = *-BoldItalic
+]
+
+\setmonofont{Inconsolata}[
+    UprightFont = *-Regular,
+    BoldFont = *-Bold
+]
+
 % Define custom colors
 \definecolor{mainblue}{RGB}{0, 75, 150}
 \definecolor{sectioncolor}{RGB}{0, 90, 180}
