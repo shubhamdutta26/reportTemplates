@@ -144,9 +144,9 @@ generate_elisa_report <- function(
 
   # Get template paths
   qmd_template_path <- system.file("templates", "elisa_report_template.qmd",
-                                   package = "datasciR")
+                                   package = "reportTemplates")
   tex_template_path <- system.file("templates", "template.tex",
-                                   package = "datasciR")
+                                   package = "reportTemplates")
 
   if (qmd_template_path == "" || tex_template_path == "") {
     stop("Templates not found. Please check package installation.")

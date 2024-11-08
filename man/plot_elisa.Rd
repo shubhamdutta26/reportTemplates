@@ -79,15 +79,15 @@ Plots microplate ELISA data. Use the create_plate() function to create an
 empty file and then populate the fields.
 }
 \examples{
-file <- system.file("extdata", "elisa_example.xlsx", package = "datasciR")
+file <- system.file("extdata", "elisa_example.xlsx", package = "reportTemplates")
 plot_elisa(file, xlog = TRUE, errorbars = TRUE)
 
-file_2 <- system.file("extdata", "elisa_example_2.xlsx", package = "datasciR")
+file_2 <- system.file("extdata", "elisa_example_2.xlsx", package = "reportTemplates")
 plot_elisa(file_2, xlog = TRUE, errorbars = TRUE)
 
-empty_plates <- system.file("extdata", "empty_plates.xlsx", package = "datasciR")
+empty_plates <- system.file("extdata", "empty_plates.xlsx", package = "reportTemplates")
 plot_elisa(empty_plates, xlog = TRUE, errorbars = TRUE)
 
-file_cbt <- system.file("extdata", "cbt_example.xlsx", package = "datasciR")
+file_cbt <- system.file("extdata", "cbt_example.xlsx", package = "reportTemplates")
 plot_elisa(file_cbt, type = "cbt", xlog = TRUE)
 }

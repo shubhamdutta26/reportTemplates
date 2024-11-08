@@ -38,16 +38,16 @@
 #' @importFrom rlang :=
 #'
 #' @examples
-#' file <- system.file("extdata", "elisa_example.xlsx", package = "datasciR")
+#' file <- system.file("extdata", "elisa_example.xlsx", package = "reportTemplates")
 #' plot_elisa(file, xlog = TRUE, errorbars = TRUE)
 #'
-#' file_2 <- system.file("extdata", "elisa_example_2.xlsx", package = "datasciR")
+#' file_2 <- system.file("extdata", "elisa_example_2.xlsx", package = "reportTemplates")
 #' plot_elisa(file_2, xlog = TRUE, errorbars = TRUE)
 #'
-#' empty_plates <- system.file("extdata", "empty_plates.xlsx", package = "datasciR")
+#' empty_plates <- system.file("extdata", "empty_plates.xlsx", package = "reportTemplates")
 #' plot_elisa(empty_plates, xlog = TRUE, errorbars = TRUE)
 #'
-#' file_cbt <- system.file("extdata", "cbt_example.xlsx", package = "datasciR")
+#' file_cbt <- system.file("extdata", "cbt_example.xlsx", package = "reportTemplates")
 #' plot_elisa(file_cbt, type = "cbt", xlog = TRUE)
 plot_elisa <- function(file,
                        type = c("regular", "cbt"),
