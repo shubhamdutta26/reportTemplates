@@ -23,3 +23,5 @@ Imports:
     tidyplate
 Suggests:
     tinytex
+URL: https://github.com/shubhamdutta26/reportTemplates
+BugReports: https://github.com/shubhamdutta26/reportTemplates/issues
