@@ -1,0 +1,271 @@
+---
+title: "LaTeX Template Customization Guide"
+author: "Shubham Dutta"
+date: today
+format: 
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    highlight-style: github
+    geometry:
+      - top=1in
+      - left=1in
+      - right=1in
+      - bottom=1in
+---
+
+# Color Customization
+
+Colors are defined at the beginning of the template using RGB values:
+
+```latex
+\definecolor{mainblue}{RGB}{0, 75, 150}
+\definecolor{sectioncolor}{RGB}{0, 90, 180}
+\definecolor{subsectioncolor}{RGB}{70, 70, 70}
+```
+
+To change colors:
+
+- Replace RGB values (each number ranges from 0-255)
+- First number: Red
+- Second number: Green
+- Third number: Blue
+
+Example modifications:
+
+```latex
+% For dark blue
+\definecolor{mainblue}{RGB}{0, 51, 102}
+
+% For forest green
+\definecolor{sectioncolor}{RGB}{34, 139, 34}
+
+% For charcoal gray
+\definecolor{subsectioncolor}{RGB}{54, 69, 79}
+```
+
+# Title Block Formatting
+
+## Title Size
+
+Change the title size by modifying `\LARGE` in:
+
+```latex
+\pretitle{%
+    \begin{flushleft}
+    \color{mainblue}\LARGE\bfseries
+}
+```
+
+Available sizes (from smallest to largest):
+
+- `\tiny`
+- `\scriptsize`
+- `\footnotesize`
+- `\small`
+- `\normalsize`
+- `\large`
+- `\Large`
+- `\LARGE`
+- `\huge`
+- `\Huge`
+
+## Author and Affiliation Spacing
+
+Adjust spacing after author name using `\\[size]`:
+
+```latex
+\author{%
+    \textbf{$author$}\\[0.3em]
+    \small{\textcolor{subsectioncolor}{$affiliation$}}
+}
+```
+
+- Increase space: `\\[0.5em]`
+- Decrease space: `\\[0.2em]`
+
+# Section Formatting
+
+## Section Style
+
+Modify section appearance:
+
+```latex
+\titleformat{\section}
+    {\color{sectioncolor}\normalfont\Large\bfseries}
+    {}{0em}
+    {}
+    [\vspace{0.5em}]
+```
+
+- Change font size: Replace `\Large`
+- Remove bold: Remove `\bfseries`
+- Change color: Replace `\color{sectioncolor}`
+
+## Section Spacing
+
+Adjust space around sections:
+
+```latex
+\titlespacing{\section}{0pt}{2em}{1em}
+```
+
+Format: `\titlespacing{command}{left}{before}{after}`
+
+- Increase space before: Change `2em` to larger value
+- Decrease space after: Change `1em` to smaller value
+
+# Page Layout
+
+## Margins
+
+Change page margins:
+
+```latex
+\usepackage[margin=1in]{geometry}
+```
+
+Common margin sizes:
+
+- `margin=1in`
+- `margin=2.5cm`
+- `margin=25mm`
+
+For different margins on each side:
+
+```latex
+\usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
+```
+
+# Headers and Footers
+
+## Header Content
+
+Modify header content:
+
+```latex
+\fancyhead[L]{\small\textcolor{mainblue}{ELISA Analysis Report}}
+\fancyhead[R]{\small\textcolor{mainblue}{\thepage}}
+```
+
+- [L] = Left side
+- [R] = Right side
+- [C] = Center
+
+## Header/Footer Lines
+
+Adjust line thickness:
+
+```latex
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+```
+
+- Remove lines: Set to `0pt`
+- Make thicker: Increase value (e.g., `1pt`)
+- Make thinner: Decrease value (e.g., `0.2pt`)
+
+# List and Paragraph Spacing
+
+## List Spacing
+
+Adjust spacing in lists:
+
+```latex
+\setlist{itemsep=0.2em, parsep=0.2em}
+```
+
+- `itemsep`: Space between items
+- `parsep`: Space between paragraphs within items
+
+## Paragraph Spacing
+
+Modify paragraph spacing:
+
+```latex
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+```
+
+- `\parskip`: Space between paragraphs
+- `\parindent`: Paragraph indentation
+
+# Figure and Table Settings
+
+## Caption Style
+
+Customize captions:
+
+```latex
+\captionsetup{
+    font=small,
+    labelfont=bf,
+    justification=justified,
+    margin=1cm
+}
+```
+
+Font options:
+
+- `font=small/large/normalsize`
+- `labelfont=bf/normalfont/it`
+
+## Figure Placement
+
+Control figure positioning:
+
+```latex
+\renewcommand{\floatpagefraction}{.9}
+\renewcommand{\topfraction}{.9}
+```
+
+- Values range from 0 to 1
+- Higher values allow more space for figures
+- Lower values reserve more space for text
+
+# Font Settings
+
+## Font Size
+
+Change document base font size in the document class:
+
+```latex
+\documentclass[11pt]{article}
+```
+
+Options:
+
+- `10pt`
+- `11pt`
+- `12pt`
+
+## Font Family
+
+Add different font packages:
+
+```latex
+\usepackage{times} % For Times New Roman
+\usepackage{helvet} % For Helvetica
+\usepackage{courier} % For Courier
+```
+
+# Common Measurement Units
+
+- `pt`: Points (1/72 inch)
+- `em`: Relative to font size
+- `ex`: Relative to 'x' height
+- `in`: Inches
+- `cm`: Centimeters
+- `mm`: Millimeters
+
+# Quick Tips {.unnumbered}
+
+1. Always compile after making changes to check the result
+2. Make small changes incrementally
+3. Keep a backup of working versions
+4. Comment out changes instead of deleting them while testing
+
+::: {.callout-note}
+Remember: LaTeX uses two compilations to properly format some elements, so you might need to compile twice to see all changes take effect.
+:::

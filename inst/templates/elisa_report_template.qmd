@@ -1,14 +1,11 @@
 ---
 title: "`r params$title`"
-author: "`r Sys.getenv('USER')`"
-affiliation: ""
+author: "Shubham Dutta, Ph.D"
+affiliation: "University of Massachusetts Medical School"
 format: 
   pdf:
     template: template.tex
-    fig-pos: 'htbp'
-    fig-width: 6
-    fig-height: 4
-    keep-tex: true  # Helpful for debugging
+    number-sections: false
 params:
   file: "path/to/file"
   title: "ELISA Report"
@@ -41,7 +38,7 @@ library(tidyplate)
 library(ggtext)
 ```
 
-## Protocol
+# Protocol
 
 #### Coating
 
@@ -77,7 +74,7 @@ library(ggtext)
 4.  100 µL of Stop solution was added to stop the reaction.
 5.  Absorbance was measured at 450 nm.
 
-## ELISA plot
+# ELISA plot
 
 ```{r}
 # Read the data with error handling
@@ -208,6 +205,6 @@ tryCatch({
 })
 ```
 
-## Results
+# Results
 
 `r params$results`

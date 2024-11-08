@@ -1,128 +1,122 @@
-% !TEX TS-program = xelatex
-\documentclass[11pt,letterpaper]{article}
+\documentclass[11pt]{article}
 
 % Required packages
-\usepackage{geometry}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{graphicx}
-\usepackage{fancyhdr}
+\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
 \usepackage{titling}
-\usepackage{ragged2e}
-\usepackage{setspace}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage{wrapfig}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
 \usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{threeparttablex}
-\usepackage[normalem]{ulem}
-\usepackage{makecell}
+\usepackage{hyperref}
 \usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{fontspec}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{sectsty}
 
-% Define Pandoc-specific commands
-\newcommand{\pandocbounded}[1]{\csname pandoc#1\endcsname}
-\newcommand{\pandoctightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\newcommand{\pandocincludegraphics}[2][]{%
-  \begin{center}\includegraphics[#1]{#2}\end{center}}
+% Define custom colors
+\definecolor{mainblue}{RGB}{0, 75, 150}
+\definecolor{sectioncolor}{RGB}{0, 90, 180}
+\definecolor{subsectioncolor}{RGB}{70, 70, 70}
 
-% For strikeout text
-\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\usepackage[normalem]{ulem}
-\providecommand{\xspace}{}
-
-% Page geometry
-\geometry{
-    letterpaper,
-    left=1in,
-    right=1in,
-    top=1in,
-    bottom=1in
-}
-
-% Custom title formatting
-\makeatletter
-\renewcommand{\maketitle}{%
-    \begin{flushleft}
-    {\Large\bfseries \@title\par}
-    \vskip 1em
-    {\large\@author\par}
-    \vskip 0.5em
-    $if(affiliation)$
-    {\large $affiliation$\par}
-    $endif$
-    \end{flushleft}
-    \vskip 2em
-}
-\makeatother
-
-% Header and footer style
-\pagestyle{fancy}
-\fancyhf{}
-\renewcommand{\headrulewidth}{0pt}
-\fancyfoot[C]{\thepage}
-
-% Hyperref setup
+% Configure hyperlinks
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,
-    urlcolor=blue,
-    citecolor=blue
+    linkcolor=mainblue,
+    filecolor=mainblue,
+    urlcolor=mainblue,
+    citecolor=mainblue
 }
 
-% Prevent overfull lines
-\setlength{\emergencystretch}{3em}
+% Define \tightlist command used by Quarto
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
-% Allow breaks at certain characters in URLs
-\def\UrlBreaks{\do\/\do-}
+% Configure title formatting with custom styling
+\pretitle{%
+    \begin{flushleft}
+    \color{mainblue}\LARGE\bfseries
+}
+\posttitle{\end{flushleft}\vskip 1em}
+\preauthor{%
+    \begin{flushleft}
+    \large
+}
+\postauthor{\end{flushleft}}
+\predate{\begin{flushleft}\large}
+\postdate{\end{flushleft}}
 
-% Table settings
-\renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{6pt}
+% Configure section formatting without numbers
+\titleformat{\section}
+    {\color{sectioncolor}\normalfont\Large\bfseries}
+    {}{0em}
+    {}
+    [\vspace{0.5em}]
 
-% For graphics
-\makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\titleformat{\subsection}
+    {\color{subsectioncolor}\normalfont\large\bfseries}
+    {}{0em}
+    {}
+    [\vspace{0.3em}]
 
-% Prevent overfull figure boxes
-\setlength{\emergencystretch}{3em}
+\titlespacing{\section}{0pt}{2em}{1em}
+\titlespacing{\subsection}{0pt}{1.5em}{0.5em}
 
-% Fix for pandoc figure handling
-\makeatletter
-\def\fps@figure{htbp}
-\makeatother
+% Remove section numbering
+\setcounter{secnumdepth}{0}
 
-$if(highlighting-macros)$
-$highlighting-macros$
-$endif$
+% Configure list spacing
+\setlist{itemsep=0.2em, parsep=0.2em}
 
-$if(tables)$
-\usepackage{longtable,booktabs,array}
-$endif$
+% Configure captions
+\captionsetup{
+    font=small,
+    labelfont=bf,
+    justification=justified,
+    margin=1cm
+}
 
-% Document start
+% Page style
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+\fancyhead[L]{\small\textcolor{mainblue}{ELISA Analysis Report}}
+\fancyhead[R]{\small\textcolor{mainblue}{\thepage}}
+\fancyfoot[C]{\small\textcolor{subsectioncolor}{Shubham Dutta}}
+
+% Adjust paragraph spacing
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+
+% Configure figure placement
+\renewcommand{\floatpagefraction}{.9}
+\renewcommand{\topfraction}{.9}
+\renewcommand{\bottomfraction}{.9}
+\renewcommand{\textfraction}{.1}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+
+% Document begins
 \begin{document}
 
-$if(title)$
-\title{$title$}
-$endif$
-
-$if(author)$
-\author{$author$}
-$endif$
-
+% Title block
+\title{\textcolor{mainblue}{$title$}}
+\author{%
+    \textbf{$author$}\\[0.3em]
+    \small{\textcolor{subsectioncolor}{$affiliation$}}
+}
+\date{\small\today}
 \maketitle
+
+% Add horizontal rule after title
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{1em}
 
 $body$
 

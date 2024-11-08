@@ -110,92 +110,161 @@ generate_elisa_report <- function(
     point_size = 3,
     linewidth = 1,
     errorbar_width = 0.2,
-    results,
+    results = "",
     output_file = "elisa_report.pdf") {
 
-  # Check required packages
-  required_packages <- c("quarto", "ggplot2", "dplyr", "tidyplate", "ggtext")
-  missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
-  if (length(missing_packages) > 0) {
-    stop("Missing required packages: ", paste(missing_packages, collapse = ", "))
+  # Input validation
+  if (!file.exists(file)) {
+    stop("Input file does not exist: ", file)
   }
 
-  # Add this near the start of your function
-  if (!tinytex::is_tinytex() && !tinytex::check_installed("latex")) {
-    stop("LaTeX is not installed. Please install TinyTeX by running: tinytex::install_tinytex()")
-  }
+  validate_parameters(method, errorbars, point_size, linewidth, errorbar_width)
 
-  # Validation code remains the same...
+  # Check dependencies
+  check_dependencies()
 
-  # Create temporary directory with error handling
-  temp_dir <- tempfile("elisa_report_")
-  dir.create(temp_dir, recursive = TRUE, showWarnings = FALSE)
-  if (!dir.exists(temp_dir)) {
-    stop("Failed to create temporary directory")
-  }
-
-  # Store current directory and set up cleanup
-  old_dir <- getwd()
-  setwd(temp_dir)
+  # Create temporary working directory
+  temp_dir <- create_temp_directory()
+  old_dir <- setwd(temp_dir)
   on.exit({
     setwd(old_dir)
     unlink(temp_dir, recursive = TRUE)
   })
 
-  # Get template paths
-  qmd_template_path <- system.file("templates", "elisa_report_template.qmd",
-                                   package = "reportTemplates")
-  tex_template_path <- system.file("templates", "template.tex",
-                                   package = "reportTemplates")
+  # Copy and prepare templates
+  copy_templates()
 
-  if (qmd_template_path == "" || tex_template_path == "") {
-    stop("Templates not found. Please check package installation.")
+  # Generate report
+  generate_pdf(
+    file = normalizePath(file, mustWork = TRUE),
+    params = list(
+      title = title,
+      coat_protein = coat_protein,
+      coat_protein_conc = coat_protein_conc,
+      plate = plate,
+      blocking_buffer = blocking_buffer,
+      detect_dil = detect_dil,
+      time = time,
+      method = match.arg(method),
+      errorbars = errorbars,
+      point_size = point_size,
+      linewidth = linewidth,
+      errorbar_width = errorbar_width,
+      results = results
+    ),
+    output_file = file.path(old_dir, output_file)
+  )
+}
+
+#' Check Required Dependencies
+#' @keywords internal
+check_dependencies <- function() {
+  required_packages <- c(
+    "quarto", "ggplot2", "dplyr", "tidyplate",
+    "ggtext", "tinytex"
+  )
+
+  # Check packages efficiently using vapply
+  missing_packages <- vapply(required_packages, function(pkg) {
+    !requireNamespace(pkg, quietly = TRUE)
+  }, logical(1))
+
+  if (any(missing_packages)) {
+    stop(
+      "Missing required packages: ",
+      paste(names(missing_packages)[missing_packages], collapse = ", ")
+    )
   }
 
-  # Copy both templates to temp directory
-  file.copy(qmd_template_path, "report.qmd", overwrite = TRUE)
-  file.copy(tex_template_path, "template.tex", overwrite = TRUE)
+  # Check LaTeX installation
+  if (!tinytex::is_tinytex() && !tinytex::check_installed("latex")) {
+    stop(
+      "LaTeX is not installed. Please install TinyTeX:\n",
+      "tinytex::install_tinytex()"
+    )
+  }
+}
 
-  # Get absolute paths
-  abs_file_path <- normalizePath(file, mustWork = FALSE)
-  output_path <- file.path(old_dir, output_file)
+#' Create Temporary Working Directory
+#' @return Path to temporary directory
+#' @keywords internal
+create_temp_directory <- function() {
+  temp_dir <- tempfile("elisa_report_")
+  if (!dir.create(temp_dir, recursive = TRUE)) {
+    stop("Failed to create temporary directory")
+  }
+  temp_dir
+}
 
-  # Render report
+#' Copy Template Files
+#' @keywords internal
+copy_templates <- function() {
+  templates <- c(
+    qmd = system.file("templates", "elisa_report_template.qmd",
+                      package = "reportTemplates"),
+    tex = system.file("templates", "template.tex",
+                      package = "reportTemplates")
+  )
+
+  if (any(templates == "")) {
+    stop("Template files not found. Check package installation.")
+  }
+
+  # Copy templates to working directory
+  file.copy(templates["qmd"], "report.qmd", overwrite = TRUE)
+  file.copy(templates["tex"], "template.tex", overwrite = TRUE)
+}
+
+#' Generate PDF Report
+#' @param file Normalized path to input file
+#' @param params List of report parameters
+#' @param output_file Final output file path
+#' @return Invisible path to generated PDF
+#' @keywords internal
+generate_pdf <- function(file, params, output_file) {
   tryCatch({
     quarto::quarto_render(
       input = "report.qmd",
       output_file = "report.pdf",
-      execute_params = list(
-        file = abs_file_path,
-        title = title,
-        coat_protein = coat_protein,
-        coat_protein_conc = coat_protein_conc,
-        plate = plate,
-        blocking_buffer = blocking_buffer,
-        detect_dil = detect_dil,
-        time = time,
-        method = method,
-        errorbars = errorbars,
-        point_size = point_size,
-        linewidth = linewidth,
-        errorbar_width = errorbar_width,
-        results = results
-      )
+      execute_params = c(list(file = file), params)
     )
 
-    # Verify PDF was created
     if (!file.exists("report.pdf")) {
-      stop("PDF report was not generated")
+      stop("PDF generation failed")
     }
 
-    # Copy to final destination
-    if (!file.copy("report.pdf", output_path, overwrite = TRUE)) {
-      stop("Failed to copy report to ", output_path)
+    if (!file.copy("report.pdf", output_file, overwrite = TRUE)) {
+      stop("Failed to copy report to destination")
     }
+
+    invisible(normalizePath(output_file))
   }, error = function(e) {
     stop("Error generating report: ", conditionMessage(e))
   })
+}
 
-  # Return path to generated file
-  invisible(normalizePath(output_path))
+#' Validate Input Parameters
+#' @keywords internal
+validate_parameters <- function(method, errorbars, point_size,
+                                linewidth, errorbar_width) {
+  if (!is.logical(errorbars)) {
+    stop("errorbars must be logical (TRUE/FALSE)")
+  }
+
+  numeric_params <- list(
+    point_size = point_size,
+    linewidth = linewidth,
+    errorbar_width = errorbar_width
+  )
+
+  lapply(names(numeric_params), function(param) {
+    value <- numeric_params[[param]]
+    if (!is.numeric(value) || value <= 0) {
+      stop(param, " must be a positive number")
+    }
+  })
+
+  if (!method[1] %in% c("line", "L4")) {
+    stop('method must be either "line" or "L4"')
+  }
 }
